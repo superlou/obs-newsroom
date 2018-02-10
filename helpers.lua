@@ -53,3 +53,14 @@ function to_string( tbl )
         return tostring(tbl)
     end
 end
+
+-- https://gist.github.com/FGRibreau/3790217
+table.filter = function(t, filterIter)
+  local out = {}
+
+  for k, v in pairs(t) do
+    if filterIter(v, k, t) then out[k] = v end
+  end
+
+  return out
+end

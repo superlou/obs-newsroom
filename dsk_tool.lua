@@ -89,6 +89,16 @@ function transition_dsk()
   local dup_scene = obs.obs_scene_duplicate(current_scene, nil, obs.OBS_SCENE_DUP_PRIVATE_REFS)
   local dest_source = obs.obs_scene_get_source(dup_scene)
 
+  -- Restore original transition when done
+  local original_transition = obs.obs_frontend_get_current_transition()
+  local sh = obs.obs_source_get_signal_handler(fade)
+  obs.signal_handler_connect(sh, "transition_stop", function(source)
+    obs.remove_current_callback()
+    obs.obs_frontend_set_current_transition(original_transition)
+    obs.obs_source_release(original_transition)
+  end)
+
+  -- Execute the transition
   obs.obs_frontend_set_current_transition(fade)
   obs.obs_transition_start(fade, obs.OBS_TRANSITION_MODE_AUTO, 500, dest_source)
 
@@ -107,33 +117,15 @@ function toggle_dsk(dsk_scene_name)
 end
 
 function get_scene_names_containing(str)
-  scenes = obs.obs_frontend_get_scenes()
+  local scenes = obs.obs_frontend_get_scenes()
 
-  names = {}
-  for i, scene in pairs(scenes) do
-    name = obs.obs_source_get_name(scene)
-    if string.match(name, str) then
-      table.insert(names, name)
-    end
-  end
+  scenes = table.filter(scenes, function(o, k, i)
+    return string.match(obs.obs_source_get_name(o), str)
+  end)
 
-  obs.source_list_release(scenes)
-  return names
-end
-
-function get_scene_names_not_containing(str)
-  scenes = obs.obs_frontend_get_scenes()
-
-  names = {}
-  for i, scene in pairs(scenes) do
-    name = obs.obs_source_get_name(scene)
-    if not string.match(name, str) then
-      table.insert(names, name)
-    end
-  end
-
-  obs.source_list_release(scenes)
-  return names
+  return table.map(scenes, function(scene)
+    return obs.obs_source_get_name(scene)
+  end)
 end
 
 function script_properties()
@@ -155,7 +147,6 @@ function script_properties()
 end
 
 function script_load()
-
 end
 
 function script_description()

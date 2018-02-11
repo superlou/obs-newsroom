@@ -64,3 +64,13 @@ table.filter = function(t, filterIter)
 
   return out
 end
+
+-- http://lua-users.org/wiki/FunctionalLibrary
+-- e.g: map({1,2,3}, double)    -> {2,4,6}
+table.map = function (tbl, func)
+    local newtbl = {}
+    for i,v in pairs(tbl) do
+        newtbl[i] = func(v)
+    end
+    return newtbl
+end

@@ -137,12 +137,23 @@ function script_properties()
   dsk_names = get_scene_names_containing("DSK")
 
   for i, name in pairs(dsk_names) do
-    callback_name = "toggle_dsk_" .. i
+    local callback_name = "toggle_dsk_"..i
     _G[callback_name] = function()
       toggle_dsk(name)
     end
 
-    obs.obs_properties_add_button(props, "toggle_dsk_" .. i,
+    local hotkey_callback_name = "hotkey_toggle_dsk_"..i
+    _G[hotkey_callback_name] = function(pressed)
+      if pressed then
+        toggle_dsk(name)
+      end
+    end
+
+    obs.obs_hotkey_register_frontend("hotkey_toggle_dsk_"..i,
+                                     "DSK: Toggle "..name,
+                                     _G[hotkey_callback_name])
+
+    obs.obs_properties_add_button(props, "toggle_dsk_"..i,
                                   "Toggle " .. name, _G[callback_name])
   end
 

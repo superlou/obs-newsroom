@@ -1,6 +1,7 @@
 require "helpers"
 
 obs = obslua
+dsk_fade_duration = 0
 
 function find_source_by_name_in_list(source_list, name)
   for i, source in pairs(source_list) do
@@ -28,7 +29,7 @@ function reject_dsk_scenes(scene_list)
 end
 
 function remove_dsk_by_name(dsk_name)
-  print("Removing "..dsk_name)
+  -- print("Removing "..dsk_name)
   local scenes = obs.obs_frontend_get_scenes()
   local scenes = reject_dsk_scenes(scenes)
 
@@ -51,7 +52,7 @@ function remove_dsk_by_name(dsk_name)
 end
 
 function add_dsk_by_name(dsk_name)
-  print("Adding "..dsk_name)
+  -- print("Adding "..dsk_name)
   local scenes = obs.obs_frontend_get_scenes()
   local dsk = find_source_by_name_in_list(scenes, dsk_name)
   local scenes = reject_dsk_scenes(scenes)
@@ -100,7 +101,7 @@ function transition_dsk()
 
   -- Execute the transition
   obs.obs_frontend_set_current_transition(fade)
-  obs.obs_transition_start(fade, obs.OBS_TRANSITION_MODE_AUTO, 500, dest_source)
+  obs.obs_transition_start(fade, obs.OBS_TRANSITION_MODE_AUTO, dsk_fade_duration, dest_source)
 
   obs.source_list_release(transitions)
   obs.obs_source_release(current_scene_source)
@@ -131,6 +132,8 @@ end
 function script_properties()
   local props = obs.obs_properties_create()
 
+  obs.obs_properties_add_int(props, "dsk_fade_duration", "Fade duration (ms)", 0, 10000, 1)
+
   dsk_names = get_scene_names_containing("DSK")
 
   for i, name in pairs(dsk_names) do
@@ -144,6 +147,14 @@ function script_properties()
   end
 
   return props
+end
+
+function script_defaults(settings)
+  obs.obs_data_set_default_int(settings, "dsk_fade_duration", 500)
+end
+
+function script_update(settings)
+  dsk_fade_duration = obs.obs_data_get_int(settings, "dsk_fade_duration")
 end
 
 function script_load()
